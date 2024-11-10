@@ -1,0 +1,31 @@
+{% load static %}
+
+<html>
+ <head>
+  <title>
+   Đánh giá mô hình
+  </title>
+  <link rel="stylesheet" href="{% static 'app/css/style2.css' %}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <img alt="Company Logo" height="50" src={% static "app/image/logo.jpg" %} width="150"/>
+       </div>
+       <div class="nav">
+        <a href="#">
+         Trang chủ
+        </a>
+        <a href="{% url 'predict_price' %}">
+         Định giá bất động sản
+        </a>
+       </div>
+
+
+
+    {% for chart_image in charts %}
+        <img src="data:image/png;base64,{{ chart_image }}" alt="Biểu đồ">
+    {% endfor %}
+
+</body>
+</html>

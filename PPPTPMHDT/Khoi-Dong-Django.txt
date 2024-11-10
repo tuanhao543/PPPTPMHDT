@@ -1,0 +1,9 @@
+django-admin startproject ....
+cd ....
+django-admin startapp app
+python manage.py makemigrations
+(khoi tao mac dinh ban dau)
+python manage.py migrate 
+python manage.py runserver 8888
+python manage.py createsuperuser
+

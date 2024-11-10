@@ -1,0 +1,469 @@
+{% load static %}
+
+<html>
+ <head>
+  <title>
+   Định giá bất động sản
+  </title>
+  <link rel="stylesheet" href="{% static 'app/css/style2.css' %}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+    $(document).ready(function(){
+        var options = [];
+        $("#location option").each(function(){
+            options.push({ value: $(this).val(), text: $(this).text() });
+        });
+
+        $("#search").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            var result = options.filter(option => option.text.toLowerCase().includes(value));
+
+            // Xóa nội dung cũ trong bảng
+            $("#searchResult tbody").empty(); 
+
+            if (result.length > 0) {
+                // Hiển thị kết quả tìm kiếm
+                result.forEach(function(option) {
+                    $("#searchResult tbody").append(`<tr><td data-value="${option.value}">${option.text}</td></tr>`);
+                });
+                $("#searchResult").show(); 
+            } else {
+                $("#searchResult").hide();
+            }
+        });
+
+        // Xử lý khi click vào một option trong bảng
+        $(document).on('click', '#searchResult tbody tr td', function() {
+            var selectedValue = $(this).data('value');
+            var selectedText = $(this).text();
+            $("#search").val(selectedText);
+            $("#searchResult").hide();
+            $("#location").val(selectedValue); 
+        });
+    });
+</script>
+  <script>
+      $(document).ready(function(){
+        var typeOptions = [];
+        $("#type option").each(function(){
+          typeOptions.push({ value: $(this).val(), text: $(this).text() });
+        });
+        $("#searchtype").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          var result = typeOptions.filter(option => option.text.toLowerCase().includes(value));
+    
+          
+          $("#searchResultType tbody").empty(); 
+    
+          if (result.length > 0) {
+            result.forEach(function(option) {
+              $("#searchResultType tbody").append(`<tr><td data-value="${option.value}">${option.text}</td></tr>`);
+            });
+            $("#searchResultType").show(); 
+          } else {
+            $("#searchResultType").hide();
+          }
+        });
+    
+        // Xử lý khi click vào option trong #searchResultType
+        $(document).on('click', '#searchResultType tbody tr td', function() {
+          var selectedValue = $(this).data('value');
+          var selectedText = $(this).text();
+          $("#searchtype").val(selectedText);
+          $("#searchResultType").hide();
+    
+          // Cập nhật giá trị cho thẻ select #type
+          $("#type").val(selectedValue); 
+        });
+      });
+    </script>
+    <script>
+        $(document).ready(function(){
+            $("#predict-form").submit(function(event){
+                event.preventDefault(); // Ngăn chặn form submit mặc định
+    
+                // Lấy dữ liệu từ form
+                var formData = $(this).serialize(); // Lấy tất cả dữ liệu form
+                
+                // Gửi AJAX request
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'predict_price' %}", // Thay 'predict_price' bằng tên url pattern của bạn
+                    data: formData,
+                    success: function(response){
+                        // Hiển thị kết quả
+                        $("#prediction-result").html(`
+                            <p>Định giá: ${response.predict} VNĐ</p>
+                        `);
+                    },
+                    error: function(){
+                        alert("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+                    }
+                });
+            });
+        });
+        function resetPage() {
+            location.reload();
+        }
+    </script>
+ </head>
+ <body>
+  <div class="header">
+   <img alt="Company Logo" height="50" src={% static "app/image/logo.jpg" %} width="150"/>
+  </div>
+  <div class="nav">
+   <a href="#">
+    Trang chủ
+   </a>
+   <a href="{% url 'visualize_data' %}">
+    Xem đánh giá mô hình
+   </a>
+  </div>
+  
+  <div class="container">
+   <div class="form-container">
+    <form method = 'post' id="predict-form">
+        {% csrf_token %}
+                <label for="type">Loại nhà:</label>
+                <input type="text" id="searchtype" placeholder="Tìm kiếm Loại Nhà">
+                <select name="type" id="type" style="display:none;">
+                    <option value="type_canhodichvumini"> Căn hộ dịch vụ, mini </option>
+                    <option value="type_chungcu">Chung cư</option>
+                    <option value="type_duplex">Duplex</option>
+                    <option value="type_nhabietthu">Nhà biệt thự</option>
+                    <option value="type_nhamatphomattien">Nhà mặt phố, mặt tiền</option>
+                    <option value="type_nhangohem">Nhà ngõ hẻm</option>
+                    <option value="type_nhapholienke">Nhà phố liền kề</option>
+                    <option value="type_officetel">Officetel</option>
+                    <option value="type_penthouse">Penthouse</option>
+                    <option value="type_tapthecuxa">Tập thể, cư xá</option>
+                </select>
+                <table id="searchResultType" style="display: none;">
+                    <tbody>
+                    </tbody>
+                </table>
+                <div id="searchResultType"></div>
+                <label for="location">Quận/Huyện:</label>
+                <input type="text" id="search" placeholder="Tìm kiếm Quận/Huyện">
+                <select name="location" id="location" style="display:none;"> 
+                    <option value="locations_phuong10_quan10"> Phường 10, Quận 10 </option>
+                    <option value="locations_phuong10_quan11"> Phường 10, Quận 11 </option>
+                    <option value="locations_phuong10_quan3">Phường 10, Quận 3</option>
+                    <option value="locations_phuong10_quan4">Phường 10, Quận 4</option>
+                    <option value="locations_phuong10_quan5">Phường 10, Quận 5</option>
+                    <option value="locations_phuong10_quan6">Phường 10, Quận 6</option>
+                    <option value="locations_phuong10_quan8">Phường 10, Quận 8</option>
+                    <option value="locations_phuong10_quangovap">Phường 10, Quận Gò Vấp</option>
+                    <option value="locations_phuong10_quanphunhuan">Phường 10, Quận Phú Nhuận</option>
+                    <option value="locations_phuong10_quantanbinh">Phường 10, Quận Tân Bình</option>
+                    <option value="locations_phuong11_quan10">Phường 11, Quận 10</option>
+                    <option value="locations_phuong11_quan11">Phường 11, Quận 11</option>
+                    <option value="locations_phuong11_quan3">Phường 11, Quận 3</option>
+                    <option value="locations_phuong11_quan5">Phường 11, Quận 5</option>
+                    <option value="locations_phuong11_quan6">Phường 11, Quận 6</option>
+                    <option value="locations_phuong11_quan8">Phường 11, Quận 8</option>
+                    <option value="locations_phuong11_quanbinhthanh">Phường 11, Quận Bình Thạnh</option>
+                    <option value="locations_phuong11_quangovap">Phường 11, Quận Gò Vấp</option>
+                    <option value="locations_phuong11_quanphunhuan">Phường 11, Quận Phú Nhuận</option>
+                    <option value="locations_phuong11_quantanbinh">Phường 11, Quận Tân Bình</option>
+                    <option value="locations_phuong12_quan10">Phường 12, Quận 10</option>
+                    <option value="locations_phuong12_quan11">Phường 12, Quận 11</option>
+                    <option value="locations_phuong12_quan3">Phường 12, Quận 3</option>
+                    <option value="locations_phuong12_quan5">Phường 12, Quận 5</option>
+                    <option value="locations_phuong12_quan6">Phường 12, Quận 6</option>
+                    <option value="locations_phuong12_quan8">Phường 12, Quận 8</option>
+                    <option value="locations_phuong12_quanbinhthanh">Phường 12, Quận Bình Thạnh</option>
+                    <option value="locations_phuong12_quangovap">Phường 12, Quận Gò Vấp</option>
+                    <option value="locations_phuong12_quantanbinh">Phường 12, Quận Tân Bình</option>
+                    <option value="locations_phuong13_quan10">Phường 13, Quận 10</option>
+                    <option value="locations_phuong13_quan11">Phường 13, Quận 11</option>
+                    <option value="locations_phuong13_quan3">Phường 13, Quận 3</option>
+                    <option value="locations_phuong13_quan4">Phường 13, Quận 4</option>
+                    <option value="locations_phuong13_quan5">Phường 13, Quận 5</option>
+                    <option value="locations_phuong13_quan6">Phường 13, Quận 6</option>
+                    <option value="locations_phuong13_quan8">Phường 13, Quận 8</option>
+                    <option value="locations_phuong13_quanbinhthanh">Phường 13, Quận Bình Thạnh</option>
+                    <option value="locations_phuong13_quangovap">Phường 13, Quận Gò Vấp</option>
+                    <option value="locations_phuong13_quanphunhuan">Phường 13, Quận Phú Nhuận</option>
+                    <option value="locations_phuong13_quantanbinh">Phường 13, Quận Tân Bình</option>
+                    <option value="locations_phuong14_quan10">Phường 14, Quận 10</option>
+                    <option value="locations_phuong14_quan11">Phường 14, Quận 11</option>
+                    <option value="locations_phuong14_quan3">Phường 14, Quận 3</option>
+                    <option value="locations_phuong14_quan4">Phường 14, Quận 4</option>
+                    <option value="locations_phuong14_quan5">Phường 14, Quận 5</option>
+                    <option value="locations_phuong14_quan6">Phường 14, Quận 6</option>
+                    <option value="locations_phuong14_quan8">Phường 14, Quận 8</option>
+                    <option value="locations_phuong14_quanbinhthanh">Phường 14, Quận Bình Thạnh</option>
+                    <option value="locations_phuong14_quangovap">Phường 14, Quận Gò Vấp</option>
+                    <option value="locations_phuong14_quantanbinh">Phường 14, Quận Tân Bình</option>
+                    <option value="locations_phuong15_quan10">Phường 15, Quận 10</option>
+                    <option value="locations_phuong15_quan11">Phường 15, Quận 11</option>
+                    <option value="locations_phuong15_quan4">Phường 15, Quận 4</option>
+                    <option value="locations_phuong15_quan8">Phường 15, Quận 8</option>
+                    <option value="locations_phuong15_quanbinhthanh">Phường 15, Quận Bình Thạnh</option>
+                    <option value="locations_phuong15_quangovap">Phường 15, Quận Gò Vấp</option>
+                    <option value="locations_phuong15_quanphunhuan">Phường 15, Quận Phú Nhuận</option>
+                    <option value="locations_phuong15_quantanbinh">Phường 15, Quận Tân Bình</option>
+                    <option value="locations_phuong16_quan11">Phường 16, Quận 11</option>
+                    <option value="locations_phuong16_quan4">Phường 16, Quận 4</option>
+                    <option value="locations_phuong16_quan8">Phường 16, Quận 8</option>
+                    <option value="locations_phuong16_quangovap">Phường 16, Quận Gò Vấp</option>
+                    <option value="locations_phuong17_quanbinhthanh">Phường 17, Quận Bình Thạnh</option>
+                    <option value="locations_phuong17_quangovap">Phường 17, Quận Gò Vấp</option>
+                    <option value="locations_phuong17_quanphunhuan">Phường 17, Quận Phú Nhuận</option>
+                    <option value="locations_phuong18_quan4">Phường 18, Quận 4</option>
+                    <option value="locations_phuong19_quanbinhthanh">Phường 19, Quận Bình Thạnh</option>
+                    <option value="locations_phuong1_quan10">Phường 1, Quận 10</option>
+                    <option value="locations_phuong1_quan11">Phường 1, Quận 11</option>
+                    <option value="locations_phuong1_quan3">Phường 1, Quận 3</option>
+                    <option value="locations_phuong1_quan4">Phường 1, Quận 4</option>
+                    <option value="locations_phuong1_quan5">Phường 1, Quận 5</option>
+                    <option value="locations_phuong1_quan6">Phường 1, Quận 6</option>
+                    <option value="locations_phuong1_quan8">Phường 1, Quận 8</option>
+                    <option value="locations_phuong1_quanbinhthanh">Phường 1, Quận Bình Thạnh</option>
+                    <option value="locations_phuong1_quangovap">Phường 1, Quận Gò Vấp</option>
+                    <option value="locations_phuong1_quanphunhuan">Phường 1, Quận Phú Nhuận</option>
+                    <option value="locations_phuong1_quantanbinh">Phường 1, Quận Tân Bình</option>
+                    <option value="locations_phuong21_quanbinhthanh">Phường 21, Quận Bình Thạnh</option>
+                    <option value="locations_phuong22_quanbinhthanh">Phường 22, Quận Bình Thạnh</option>
+                    <option value="locations_phuong24_quanbinhthanh">Phường 24, Quận Bình Thạnh</option>
+                    <option value="locations_phuong25_quanbinhthanh">Phường 25, Quận Bình Thạnh</option>
+                    <option value="locations_phuong26_quanbinhthanh">Phường 26, Quận Bình Thạnh</option>
+                    <option value="locations_phuong27_quanbinhthanh">Phường 27, Quận Bình Thạnh</option>
+                    <option value="locations_phuong28_quanbinhthanh">Phường 28, Quận Bình Thạnh</option>
+                    <option value="locations_phuong2_quan10">Phường 2, Quận 10</option>
+                    <option value="locations_phuong2_quan11">Phường 2, Quận 11</option>
+                    <option value="locations_phuong2_quan3">Phường 2, Quận 3</option>
+                    <option value="locations_phuong2_quan4">Phường 2, Quận 4</option>
+                    <option value="locations_phuong2_quan5">Phường 2, Quận 5</option>
+                    <option value="locations_phuong2_quan6">Phường 2, Quận 6</option>
+                    <option value="locations_phuong2_quan8">Phường 2, Quận 8</option>
+                    <option value="locations_phuong2_quanbinhthanh">Phường 2, Quận Bình Thạnh</option>
+                    <option value="locations_phuong2_quanphunhuan">Phường 2, Quận Phú Nhuận</option>
+                    <option value="locations_phuong2_quantanbinh">Phường 2, Quận Tân Bình</option>
+                    <option value="locations_phuong3_quan11">Phường 3, Quận 11</option>
+                    <option value="locations_phuong3_quan3">Phường 3, Quận 3</option>
+                    <option value="locations_phuong3_quan4">Phường 3, Quận 4</option>
+                    <option value="locations_phuong3_quan5">Phường 3, Quận 5</option>
+                    <option value="locations_phuong3_quan6">Phường 3, Quận 6</option>
+                    <option value="locations_phuong3_quan8">Phường 3, Quận 8</option>
+                    <option value="locations_phuong3_quanbinhthanh">Phường 3, Quận Bình Thạnh</option>
+                    <option value="locations_phuong3_quangovap">Phường 3, Quận Gò Vấp</option>
+                    <option value="locations_phuong3_quanphunhuan">Phường 3, Quận Phú Nhuận</option>
+                    <option value="locations_phuong3_quantanbinh">Phường 3, Quận Tân Bình</option>
+                    <option value="locations_phuong4_quan10">Phường 4, Quận 10</option>
+                    <option value="locations_phuong4_quan11">Phường 4, Quận 11</option>
+                    <option value="locations_phuong4_quan3">Phường 4, Quận 3</option>
+                    <option value="locations_phuong4_quan4">Phường 4, Quận 4</option>
+                    <option value="locations_phuong4_quan5">Phường 4, Quận 5</option>
+                    <option value="locations_phuong4_quan6">Phường 4, Quận 6</option>
+                    <option value="locations_phuong4_quan8">Phường 4, Quận 8</option>
+                    <option value="locations_phuong4_quangovap">Phường 4, Quận Gò Vấp</option>
+                    <option value="locations_phuong4_quanphunhuan">Phường 4, Quận Phú Nhuận</option>
+                    <option value="locations_phuong4_quantanbinh">Phường 4, Quận Tân Bình</option>
+                    <option value="locations_phuong5_quan10">Phường 5, Quận 10</option>
+                    <option value="locations_phuong5_quan11">Phường 5, Quận 11</option>
+                    <option value="locations_phuong5_quan3">Phường 5, Quận 3</option>
+                    <option value="locations_phuong5_quan5">Phường 5, Quận 5</option>
+                    <option value="locations_phuong5_quan6">Phường 5, Quận 6</option>
+                    <option value="locations_phuong5_quan8">Phường 5, Quận 8</option>
+                    <option value="locations_phuong5_quanbinhthanh">Phường 5, Quận Bình Thạnh</option>
+                    <option value="locations_phuong5_quangovap">Phường 5, Quận Gò Vấp</option>
+                    <option value="locations_phuong5_quanphunhuan">Phường 5, Quận Phú Nhuận</option>
+                    <option value="locations_phuong5_quantanbinh">Phường 5, Quận Tân Bình</option>
+                    <option value="locations_phuong6_quan10">Phường 6, Quận 10</option>
+                    <option value="locations_phuong6_quan11">Phường 6, Quận 11</option>
+                    <option value="locations_phuong6_quan4">Phường 6, Quận 4</option>
+                    <option value="locations_phuong6_quan5">Phường 6, Quận 5</option>
+                    <option value="locations_phuong6_quan6">Phường 6, Quận 6</option>
+                    <option value="locations_phuong6_quan8">Phường 6, Quận 8</option>
+                    <option value="locations_phuong6_quanbinhthanh">Phường 6, Quận Bình Thạnh</option>
+                    <option value="locations_phuong6_quangovap">Phường 6, Quận Gò Vấp</option>
+                    <option value="locations_phuong6_quantanbinh">Phường 6, Quận Tân Bình</option>
+                    <option value="locations_phuong7_quan10">Phường 7, Quận 10</option>
+                    <option value="locations_phuong7_quan11">Phường 7, Quận 11</option>
+                    <option value="locations_phuong7_quan5">Phường 7, Quận 5</option>
+                    <option value="locations_phuong7_quan6">Phường 7, Quận 6</option>
+                    <option value="locations_phuong7_quan8">Phường 7, Quận 8</option>
+                    <option value="locations_phuong7_quanbinhthanh">Phường 7, Quận Bình Thạnh</option>
+                    <option value="locations_phuong7_quangovap">Phường 7, Quận Gò Vấp</option>
+                    <option value="locations_phuong7_quanphunhuan">Phường 7, Quận Phú Nhuận</option>
+                    <option value="locations_phuong7_quantanbinh">Phường 7, Quận Tân Bình</option>
+                    <option value="locations_phuong8_quan10">Phường 8, Quận 10</option>
+                    <option value="locations_phuong8_quan11">Phường 8, Quận 11</option>
+                    <option value="locations_phuong8_quan4">Phường 8, Quận 4</option>
+                    <option value="locations_phuong8_quan5">Phường 8, Quận 5</option>
+                    <option value="locations_phuong8_quan6">Phường 8, Quận 6</option>
+                    <option value="locations_phuong8_quan8">Phường 8, Quận 8</option>
+                    <option value="locations_phuong8_quangovap">Phường 8, Quận Gò Vấp</option>
+                    <option value="locations_phuong8_quanphunhuan">Phường 8, Quận Phú Nhuận</option>
+                    <option value="locations_phuong8_quantanbinh">Phường 8, Quận Tân Bình</option>
+                    <option value="locations_phuong9_quan10">Phường 9, Quận 10</option>
+                    <option value="locations_phuong9_quan11">Phường 9, Quận 11</option>
+                    <option value="locations_phuong9_quan3">Phường 9, Quận 3</option>
+                    <option value="locations_phuong9_quan4">Phường 9, Quận 4</option>
+                    <option value="locations_phuong9_quan5">Phường 9, Quận 5</option>
+                    <option value="locations_phuong9_quan6">Phường 9, Quận 6</option>
+                    <option value="locations_phuong9_quan8">Phường 9, Quận 8</option>
+                    <option value="locations_phuong9_quangovap">Phường 9, Quận Gò Vấp</option>
+                    <option value="locations_phuong9_quanphunhuan">Phường 9, Quận Phú Nhuận</option>
+                    <option value="locations_phuong9_quantanbinh">Phường 9, Quận Tân Bình</option>
+                    <option value="locations_phuongankhanhquan2cu_thanhphothuduc">Phường An Khánh (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonganlac_quanbinhtan">Phường An Lạc, Quận Bình Tân</option>
+                    <option value="locations_phuonganlaca_quanbinhtan">Phường An Lạc A, Quận Bình Tân</option>
+                    <option value="locations_phuonganloidongquan2cu_thanhphothuduc">Phường An Lợi Đông (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonganphudong_quan12">Phường An Phú Đông, Quận 12</option>
+                    <option value="locations_phuonganphuquan2cu_thanhphothuduc">Phường An Phú (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongbennghe_quan1">Phường Bến Nghé, Quận 1</option>
+                    <option value="locations_phuongbenthanh_quan1">Phường Bến Thành, Quận 1</option>
+                    <option value="locations_phuongbinhchieuquanthuduccu_thanhphothuduc">Phường Bình Chiểu (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongbinhhunghoa_quanbinhtan">Phường Bình Hưng Hòa, Quận Bình Tân</option>
+                    <option value="locations_phuongbinhhunghoaa_quanbinhtan">Phường Bình Hưng Hòa A, Quận Bình Tân</option>
+                    <option value="locations_phuongbinhhunghoab_quanbinhtan">Phường Bình Hưng Hòa B, Quận Bình Tân</option>
+                    <option value="locations_phuongbinhthoquanthuduccu_thanhphothuduc">Phường Bình Thọ (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongbinhthuan_quan7">Phường Bình Thuận, Quận 7</option>
+                    <option value="locations_phuongbinhtridong_quanbinhtan">Phường Bình Trị Đông, Quận Bình Tân</option>
+                    <option value="locations_phuongbinhtridonga_quanbinhtan">Phường Bình Trị Đông A, Quận Bình Tân</option>
+                    <option value="locations_phuongbinhtridongb_quanbinhtan">Phường Bình Trị Đông B, Quận Bình Tân</option>
+                    <option value="locations_phuongbinhtrungdongquan2cu_thanhphothuduc">Phường Bình Trung Đông (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongbinhtrungtayquan2cu_thanhphothuduc">Phường Bình Trung Tây (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongcatlaiquan2cu_thanhphothuduc">Phường Cát Lái (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongcaukho_quan1">Phường Cầu Kho, Quận 1</option>
+                    <option value="locations_phuongcauonglanh_quan1">Phường Cầu Ông Lãnh, Quận 1</option>
+                    <option value="locations_phuongcogiang_quan1">Phường Cô Giang, Quận 1</option>
+                    <option value="locations_phuongdakao_quan1">Phường ĐaKao, Quận 1</option>
+                    <option value="locations_phuongdonghungthuan_quan12">Phường Đông Hưng Thuận, Quận 12</option>
+                    <option value="locations_phuonghiepbinhchanhquanthuduccu_thanhphothuduc">Phường Hiệp Bình Chánh (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonghiepbinhphuocquanthuduccu_thanhphothuduc">Phường Hiệp Bình Phước (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonghiepphuquan9cu_thanhphothuduc">Phường Hiệp Phú (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonghieptan_quantanphu">Phường Hiệp Tân, Quận Tân Phú</option>
+                    <option value="locations_phuonghiepthanh_quan12">Phường Hiệp Thành, Quận 12</option>
+                    <option value="locations_phuonghoathanh_quantanphu">Phường Hòa Thạnh, Quận Tân Phú</option>
+                    <option value="locations_phuonglinhchieuquanthuduccu_thanhphothuduc">Phường Linh Chiểu (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglinhdongquanthuduccu_thanhphothuduc">Phường Linh Đông (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>    
+                    <option value="locations_phuonglinhtayquanthuduccu_thanhphothuduc">Phường Linh Tây (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglinhtrungquanthuduccu_thanhphothuduc">Phường Linh Trung (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglinhxuanquanthuduccu_thanhphothuduc">Phường Linh Xuân (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglongbinhquan9cu_thanhphothuduc">Phường Long Phước (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglongphuocquan9cu_thanhphothuduc">Phường Long Phước (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglongthanhmyquan9cu_thanhphothuduc">Phường Long Thạnh Mỹ (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuonglongtruongquan9cu_thanhphothuduc">Phường Long Trường (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongnguyencutrinh_quan1">Phường Nguyễn Cư Trinh, Quận 1</option>
+                    <option value="locations_phuongnguyenthaibinh_quan1">Phường Nguyễn Thái Bình, Quận 1</option>
+                    <option value="locations_phuongphamngulao_quan1">Phường Phạm Ngũ Lão, Quận 1</option>
+                    <option value="locations_phuongphuhuuquan9cu_thanhphothuduc">Phường Phú Hữu (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongphumy_quan7">Phường Phú Mỹ, Quận 7</option>
+                    <option value="locations_phuongphuocbinhquan9cu_thanhphothuduc">Phường Phước Bình (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongphuoclongaquan9cu_thanhphothuduc">Phường Phước Long A (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongphuoclongbquan9cu_thanhphothuduc">Phường Phước Long B (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongphuthanh_quantanphu">Phường Phú Thạnh, Quận Tân Phú</option>
+                    <option value="locations_phuongphuthohoa_quantanphu">Phường Phú Thọ Hòa, Quận Tân Phú</option>
+                    <option value="locations_phuongphuthuan_quan7">Phường Phú Thuận, Quận 7</option>
+                    <option value="locations_phuongphutrung_quantanphu">Phường Phú Trung, Quận Tân Phú</option>
+                    <option value="locations_phuongsonky_quantanphu">Phường Sơn Kỳ, Quận Tân Phú</option>
+                    <option value="locations_phuongtambinhquanthuduccu_thanhphothuduc">Phường Tam Bình (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtamphuquanthuduccu_thanhphothuduc">Phường Tam Phú (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtanchanhhiep_quan12">Phường Tân Chánh Hiệp, Quận 12</option>
+                    <option value="locations_phuongtandinh_quan1">Phường Tân Định, Quận 1</option>
+                    <option value="locations_phuongtangnhonphuaquan9cu_thanhphothuduc">Phường Tăng Nhơn Phú A (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtangnhonphubquan9cu_thanhphothuduc">Phường Tăng Nhơn Phú B (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtanhung_quan7">Phường Tân Hưng, Quận 7</option>
+                    <option value="locations_phuongtanhungthuan_quan12">Phường Tân Hưng Thuận, Quận 12</option>
+                    <option value="locations_phuongtankieng_quan7">Phường Tân Kiêng, Quận 7</option>
+                    <option value="locations_phuongtanphong_quan7">Phường Tân Phong, Quận 7</option>
+                    <option value="locations_phuongtanphu_quan7">Phường Tân Phú, Quận 7</option>
+                    <option value="locations_phuongtanphuquan9cu_thanhphothuduc">Phường Tân Phú (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtanquy_quan7">Phường Tân Quý, Quận 7</option>
+                    <option value="locations_phuongtanquy_quantanphu">Phường Tân Quý, Quận Tân Phú</option>
+                    <option value="locations_phuongtansonnhi_quantanphu">Phường Tân Sơn Nhì, Quận Tân Phú</option>
+                    <option value="locations_phuongtantao_quanbinhtan">Phường Tận Tạo, Quận Bình Tân</option>
+                    <option value="locations_phuongtantaoa_quanbinhtan">Phường Tân Tạo A, Quận Bình Tân</option>
+                    <option value="locations_phuongtanthanh_quantanphu">Phường Tân Thạnh, Quận Tân Phú</option>
+                    <option value="locations_phuongtanthoihiep_quan12">Phường Tân Thới Hiệp, Quận 12</option>
+                    <option value="locations_phuongtanthoihoa_quantanphu">Phường Tân Thới Hòa, Quận Tân Phú</option>
+                    <option value="locations_phuongtanthoinhat_quan12">Phường Tân Thới Nhất, Quận 12</option>
+                    <option value="locations_phuongtanthuandong_quan7">Phường Tân Thuận Đông, Quận 7</option>
+                    <option value="locations_phuongtanthuantay_quan7">Phường Tân Thuận Tây, Quận 7</option>
+                    <option value="locations_phuongtaythanh_quantanphu">Phường Tây Thạnh, Quận Tân Phú</option>
+                    <option value="locations_phuongthanhloc_quan12">Phường Thanh Lộc, Quận 12</option>
+                    <option value="locations_phuongthanhmyloiquan2cu_thanhphothuduc">Phường Thạnh Mỹ Lợi (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongthanhxuan_quan12">Phường Thanh Xuân, Quận 12</option>
+                    <option value="locations_phuongthaodienquan2cu_thanhphothuduc">Phường Thảo Điền (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongthoian_quan12">Phường Thới An, Quận 12</option>
+                    <option value="locations_phuongthuthiemquan2cu_thanhphothuduc">Phường Thủ Thiêm (Quận 2 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtrungmytay_quan12">Phường Trung Mỹ Tây, Quận 12</option>
+                    <option value="locations_phuongtruongthanhquan9cu_thanhphothuduc">Phường Trường Thạnh (Quận 9 cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongtruongthoquanthuduccu_thanhphothuduc">Phường Trường Thọ (Quận Thủ Đức cũ), Thành phố Thủ Đức</option>
+                    <option value="locations_phuongvothisau_quan3">Phường Võ Thị Sáu, Quận 3</option>
+                    <option value="locations_thitrancanthanh_huyencangio">Thị Trấn Cần Thạnh, Huyện Cần Giờ</option>
+                    <option value="locations_thitrancuchi_huyencuchi">Thị Trấn Củ Chi, Huyện Củ Chi</option>
+                    <option value="locations_thitranhocmon_huyenhocmon">Thị Trấn Hóc Môn, Huyện Hóc Môn</option>
+                    <option value="locations_thitrannhabe_huyennhabe">Thị Trấn Nhà Bè, Huyện Nhà Bè</option>
+                    <option value="locations_thitrantantuc_huyenbinhchanh">Thị Trấn Tân Túc, Huyện Bình Chánh</option>
+                    <option value="locations_xaannhontay_huyencuchi">Xã An Nhơn Tây, Huyện Củ Chi</option>
+                    <option value="locations_xaanphu_huyencuchi">Xã An Phú, Huyện Củ Chi</option>
+                    <option value="locations_xaanphutay_huyenbinhchanh">Xã An Phú Tây, Huyện Bình Chánh</option>
+                    <option value="locations_xaanthoidong_huyencangio">Xã An Thới Đông, Huyện Cần Giờ</option>
+                    <option value="locations_xabadiem_huyenhocmon">Xã Bà Điểm, Huyện Hóc Môn</option>
+                    <option value="locations_xabinhchanh_huyenbinhchanh">Xã Bình Chánh, Huyện Bình Chánh</option>
+                    <option value="locations_xabinhhung_huyenbinhchanh">Xã Bình Hưng, Huyện Bình Chánh</option>
+                    <option value="locations_xabinhkhanh_huyencangio">Xã Bình Khánh, Huyện Cần Giờ</option>
+                    <option value="locations_xabinhloi_huyenbinhchanh">Xã Bình Lợi, Huyện Bình Chánh</option>
+                    <option value="locations_xabinhmy_huyencuchi">Xã Bình Mỹ, Huyện Củ Chi</option>
+                    <option value="locations_xadaphuoc_huyenbinhchanh">Xã Đa Phước, Huyện Bình Chánh</option>
+                    <option value="locations_xadongthanh_huyenhocmon">Xã Đông Thạnh, Huyện Hóc Môn</option>
+                    <option value="locations_xahiepphuoc_huyennhabe">Xã Hiệp Phước, Huyện Nhà Bè</option>
+                    <option value="locations_xahoaphu_huyencuchi">Xã Hòa Phú, Huyện Củ Chi</option>
+                    <option value="locations_xahunglong_huyenbinhchanh">Xã Hưng Long, Huyện Bình Chánh</option>
+                    <option value="locations_xaleminhxuan_huyenbinhchanh">Xã Lê Minh Xuân, Huyện Bình Chánh</option>
+                    <option value="locations_xalonghoa_huyencangio">Xã Long Hòa, Huyện Cần Giờ</option>
+                    <option value="locations_xalongthoi_huyennhabe">Xã Long Thới, Huyện Nhà Bè</option>
+                    <option value="locations_xanhibinh_huyenhocmon">Xã Nhị Bình, Huyện Hóc Môn</option>
+                    <option value="locations_xanhonduc_huyennhabe">Xã Nhơn Đức, Huyện Nhà Bè</option>
+                    <option value="locations_xanhuanduc_huyencuchi">Xã Nhuận Đức, Huyện Củ Chi</option>
+                    <option value="locations_xaphamvancoi_huyencuchi">Xã Phạm Văn Cội, Huyện Củ Chi</option>
+                    <option value="locations_xaphamvanhai_huyenbinhchanh">Xã Phạm Văn Hai, Huyện Bình Chánh</option>
+                    <option value="locations_xaphongphu_huyenbinhchanh">Xã Phong Phú, Huyện Bình Chánh</option>
+                    <option value="locations_xaphuhoadong_huyencuchi">Xã Phú Hòa Đông, Huyện Củ Chi</option>
+                    <option value="locations_xaphumyhung_huyencuchi">Xã Phú Mỹ Hưng, Huyện Củ Chi</option>
+                    <option value="locations_xaphuochiep_huyencuchi">Xã Phước Hiệp, Huyện Củ Chi</option>
+                    <option value="locations_xaphuockien_huyennhabe">Xã Phước Kiến, Huyện Nhà Bè</option>
+                    <option value="locations_xaphuocloc_huyennhabe">Xã Phước Lộc, Huyện Nhà Bè</option>
+                    <option value="locations_xaphuocthanh_huyencuchi">Xã Phước Thạnh, Huyện Củ Chi</option>
+                    <option value="locations_xaphuocvinhan_huyencuchi">Xã Phước Vĩnh An, Huyện Củ Chi</option>
+                    <option value="locations_xaphuxuan_huyennhabe">Xã Phú Xuân, Huyện Nhà Bè</option>
+                    <option value="locations_xaquyduc_huyenbinhchanh">Xã Quy Đức, Huyện Bình Chánh</option>
+                    <option value="locations_xatananhoi_huyencuchi">Xã Tân An Hội, Huyện Củ Chi</option>
+                    <option value="locations_xatanhiep_huyenhocmon">Xã Tân Hiệp, Huyện Hóc Môn</option>
+                    <option value="locations_xatankien_huyenbinhchanh">Xã Tân Kiên, Huyện Bình Chánh</option>
+                    <option value="locations_xatannhut_huyenbinhchanh">Xã Tân Nhựt, Huyện Bình Chánh</option>
+                    <option value="locations_xatanphutrung_huyencuchi">Xã Tân Phú Trung, Huyện Củ Chi</option>
+                    <option value="locations_xatanquytay_huyenbinhchanh">Xã Tân Quý Tây, Huyện Bình Chánh</option>
+                    <option value="locations_xatanthanhdong_huyencuchi">Xã Tân Thạnh Đông, Huyện Củ Chi</option>
+                    <option value="locations_xatanthanhtay_huyencuchi">Xã Tân Thạnh Tây, Huyện Củ Chi</option>
+                    <option value="locations_xatanthoinhi_huyenhocmon">Xã Tân Thới Nhì, Huyện Hóc Môn</option>
+                </select>
+                <table id="searchResult" style="display: none;">
+                  <tbody>
+                  </tbody>
+              </table>
+                <div id="searchResult"></div>
+                <label for="area">Diện tích (m2):</label>
+                <input type="number" name="area" id="area" required>
+                <label for="aream2">Giá/m2:</label>
+                <input type="number" name="aream2" id="aream2" required>
+                <label for="room_sleep">Số phòng ngủ:</label>
+                <input type="number" name="room_sleep" id="room_sleep" required>
+                <label for="toilet">Số toilet:</label>
+                <input type="number" name="toilet" id="toilet" required>
+                <br></br>
+                <div id="prediction-result"></div> <br>
+                <br>
+                <center><button type="submit">Định giá</button>
+                    <button type="button" onclick="resetPage()">Tạo lại</button></center>
+                </br>
+            </form>
+   </div>
+  </div>
+ </body>
+</html>
